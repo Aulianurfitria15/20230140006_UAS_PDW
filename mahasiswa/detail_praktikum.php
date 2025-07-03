@@ -69,7 +69,7 @@ $result_modul = $stmt_modul->get_result();
 ?>
 
 <?php if (!empty($pesan)) { echo $pesan; } ?>
-<a href="praktikum_saya.php" class="mb-4 inline-block text-indigo-600 hover:text-indigo-900">&larr; Kembali ke Daftar Praktikum</a>
+<a href="my_courses.php" class="mb-4 inline-block text-indigo-600 hover:text-indigo-900">&larr; Kembali ke Daftar Praktikum</a>
 
 <div class="space-y-6">
     <?php if ($result_modul && $result_modul->num_rows > 0): ?>
@@ -129,6 +129,6 @@ $result_modul = $stmt_modul->get_result();
 </div>
 
 <?php
-require_once 'templates/footer.php';
+require_once 'templates/footer_mahasiswa.php';
 $conn->close();
 ?>

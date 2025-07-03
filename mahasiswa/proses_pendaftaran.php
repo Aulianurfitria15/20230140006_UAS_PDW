@@ -30,7 +30,7 @@ if ($result_check->num_rows === 0) {
 $stmt_check->close();
 
 // Setelah selesai, arahkan pengguna ke halaman "Praktikum Saya" untuk melihat hasilnya
-header("Location: praktikum_saya.php");
+header("Location: my_courses.php");
 exit();
 
 ?>
