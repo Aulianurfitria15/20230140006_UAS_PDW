@@ -3,7 +3,8 @@
 
 // Panggil Header dan Konfigurasi
 $pageTitle = 'Laporan Masuk';
-require_once '../templates/header.php';
+// BENAR
+require_once 'templates/header.php';
 require_once '../config.php';
 
 // Pastikan hanya asisten yang bisa mengakses
@@ -116,6 +117,6 @@ $result_mahasiswa_filter = $conn->query("SELECT id, nama FROM users WHERE role =
 </div>
 
 <?php
-require_once '../templates/footer.php';
+require_once 'templates/footer.php';
 $conn->close();
 ?>

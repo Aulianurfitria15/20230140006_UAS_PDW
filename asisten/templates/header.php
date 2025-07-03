@@ -50,6 +50,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'asisten') {
                         <span>Laporan Masuk</span>
                     </a>
                 </li>
+                <li>
+                    <a href="kelola_pengguna.php" class="<?php echo in_array($activePage, ['kelola_pengguna', 'edit_pengguna']) ? $activeClass : $inactiveClass; ?> flex items-center px-4 py-3 rounded-lg transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-2.253 9.527 9.527 0 0 0-4.37-1.066A8.969 8.969 0 0 1 12 21a8.969 8.969 0 0 1-5.372-1.634c-.784.558-1.81.996-2.924 1.265A9.53 9.53 0 0 0 6.5 21a9.53 9.53 0 0 0 3.5-1.21c.338.253.722.468 1.125.642a9.38 9.38 0 0 0 2.625.372M8.25 12.75a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM12.75 3a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z" /></svg>
+                        <span>Kelola Pengguna</span>
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>
