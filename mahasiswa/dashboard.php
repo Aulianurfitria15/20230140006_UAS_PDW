@@ -114,6 +114,6 @@ $stmt_notif_daftar->close();
 
 <?php
 // 6. Panggil Footer
-require_once '../templates/footer.php';
+require_once 'templates/footer_mahasiswa.php';
 $conn->close();
 ?>

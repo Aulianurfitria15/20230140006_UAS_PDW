@@ -49,7 +49,6 @@ $result = $stmt->get_result();
     <?php else: ?>
         <div class="col-span-full text-center p-6 bg-white rounded-lg shadow-md">
             <p class="text-gray-500">Anda belum mendaftar di praktikum manapun.</p>
-            <a href="../katalog.php" class="mt-4 inline-block text-indigo-600 hover:underline">Cari praktikum sekarang</a>
         </div>
     <?php endif; ?>
 </div>
@@ -57,5 +56,5 @@ $result = $stmt->get_result();
 <?php
 $stmt->close();
 $conn->close();
-require_once '../templates/footer.php';
+require_once 'templates/footer_mahasiswa.php';
 ?>
