@@ -100,7 +100,7 @@ $result_mahasiswa_filter = $conn->query("SELECT id, nama FROM users WHERE role =
                             <?php endif; ?>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <a href="beri_nilai.php?id_laporan=<?php echo $row['id_laporan']; ?>" class="text-indigo-600 hover:text-indigo-900">
+                            <a href="beri_nilai.php?id_laporan=<?php echo $row['id_laporan']; ?>" ...>
                                 <?php echo is_null($row['nilai']) ? 'Beri Nilai' : 'Lihat/Ubah Nilai'; ?>
                             </a>
                         </td>

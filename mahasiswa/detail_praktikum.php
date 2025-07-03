@@ -129,6 +129,6 @@ $result_modul = $stmt_modul->get_result();
 </div>
 
 <?php
-require_once '../templates/footer.php';
+require_once 'templates/footer.php';
 $conn->close();
 ?>

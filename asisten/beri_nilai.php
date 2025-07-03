@@ -2,7 +2,7 @@
 // asisten/beri_nilai.php
 
 // Panggil Header dan Konfigurasi
-require_once '../templates/header.php';
+require_once 'templates/header.php';
 require_once '../config.php';
 
 // Pastikan hanya asisten yang bisa mengakses
