@@ -5,7 +5,7 @@
 $pageTitle = 'Kelola Mata Praktikum';
 
 // 2. Panggil Header dan Konfigurasi
-require_once 'templates/header.php';
+require_once '../templates/header.php';
 require_once '../config.php';
 
 // 3. Pastikan hanya asisten yang bisa mengakses halaman ini
@@ -83,16 +83,13 @@ $result = $conn->query("SELECT * FROM mata_praktikum ORDER BY id DESC");
 
 ?>
 
-<!-- Tampilkan pesan sukses/gagal jika ada -->
 <?php if (!empty($pesan)) { echo $pesan; } ?>
 
-<!-- Form untuk menambah/mengedit mata praktikum -->
 <div class="bg-white p-6 rounded-lg shadow-md mb-8">
     <h3 class="text-xl font-bold text-gray-900 mb-4">
         <?php echo $id_edit ? 'Edit Mata Praktikum' : 'Tambah Mata Praktikum Baru'; ?>
     </h3>
     <form action="matkul.php" method="POST">
-        <!-- Hidden input untuk ID saat update -->
         <?php if ($id_edit): ?>
             <input type="hidden" name="id_update" value="<?php echo $id_edit; ?>">
         <?php endif; ?>
@@ -114,7 +111,6 @@ $result = $conn->query("SELECT * FROM mata_praktikum ORDER BY id DESC");
     </form>
 </div>
 
-<!-- Tabel untuk menampilkan data mata praktikum -->
 <div class="bg-white p-6 rounded-lg shadow-md">
     <h3 class="text-xl font-bold text-gray-900 mb-4">Daftar Mata Praktikum</h3>
     <div class="overflow-x-auto">
@@ -151,6 +147,6 @@ $result = $conn->query("SELECT * FROM mata_praktikum ORDER BY id DESC");
 
 <?php
 // 8. Panggil Footer
-require_once 'templates/footer.php';
+require_once '../templates/footer.php';
 $conn->close();
 ?>
