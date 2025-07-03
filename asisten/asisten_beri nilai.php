@@ -1,27 +1,26 @@
 <?php
 // asisten/beri_nilai.php
 
-// 1. Panggil Header dan Konfigurasi
-require_once 'templates/header.php';
+// Panggil Header dan Konfigurasi
+require_once '../templates/header.php';
 require_once '../config.php';
 
-// 2. Pastikan hanya asisten yang bisa mengakses
+// Pastikan hanya asisten yang bisa mengakses
 if ($_SESSION['role'] !== 'asisten') {
     header('Location: ../mahasiswa/dashboard.php');
     exit;
 }
 
-// 3. Ambil ID Laporan dari URL, jika tidak ada, kembalikan
+// Ambil ID Laporan dari URL
 if (!isset($_GET['id_laporan']) || empty($_GET['id_laporan'])) {
     header('Location: kelola_laporan.php');
     exit;
 }
 $id_laporan = $_GET['id_laporan'];
-
 $pesan = '';
-$upload_dir = '../uploads/laporan/'; // Pastikan folder ini ada
+$upload_dir = '../uploads/laporan/';
 
-// 4. Logika untuk PROSES FORM (UPDATE NILAI)
+// Logika untuk PROSES FORM (UPDATE NILAI)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nilai = $_POST['nilai'];
     $feedback = $_POST['feedback'];
@@ -37,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
 }
 
-// 5. Query untuk mengambil detail laporan yang akan dinilai
+// Query untuk mengambil detail laporan yang akan dinilai
 $sql = "SELECT 
             l.id, l.file_laporan, l.nilai, l.feedback,
             u.nama as nama_mahasiswa,
@@ -54,7 +53,6 @@ $stmt_laporan->execute();
 $result_laporan = $stmt_laporan->get_result();
 
 if ($result_laporan->num_rows === 0) {
-    // Jika ID laporan tidak valid, kembalikan
     header('Location: kelola_laporan.php');
     exit;
 }
@@ -63,13 +61,11 @@ $pageTitle = 'Beri Nilai: ' . htmlspecialchars($laporan['nama_mahasiswa']);
 $stmt_laporan->close();
 ?>
 
-<!-- Tampilkan pesan sukses/gagal jika ada -->
 <?php if (!empty($pesan)) { echo $pesan; } ?>
 
 <a href="kelola_laporan.php" class="mb-4 inline-block text-indigo-600 hover:text-indigo-900">&larr; Kembali ke Daftar Laporan</a>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Kolom Informasi Laporan -->
     <div class="md:col-span-1 bg-white p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-bold text-gray-900 mb-4">Detail Laporan</h3>
         <div class="space-y-3">
@@ -100,19 +96,18 @@ $stmt_laporan->close();
         </div>
     </div>
 
-    <!-- Kolom Form Penilaian -->
     <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-bold text-gray-900 mb-4">Form Penilaian</h3>
         <form action="beri_nilai.php?id_laporan=<?php echo $id_laporan; ?>" method="POST">
             <div class="mb-4">
                 <label for="nilai" class="block text-sm font-medium text-gray-700">Nilai (Angka)</label>
-                <input type="number" id="nilai" name="nilai" min="0" max="100" value="<?php echo htmlspecialchars($laporan['nilai']); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                <input type="number" id="nilai" name="nilai" min="0" max="100" value="<?php echo htmlspecialchars($laporan['nilai']); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required>
             </div>
             <div class="mb-4">
                 <label for="feedback" class="block text-sm font-medium text-gray-700">Feedback (Teks)</label>
-                <textarea id="feedback" name="feedback" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($laporan['feedback']); ?></textarea>
+                <textarea id="feedback" name="feedback" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"><?php echo htmlspecialchars($laporan['feedback']); ?></textarea>
             </div>
-            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                 Simpan Nilai
             </button>
         </form>
@@ -120,7 +115,6 @@ $stmt_laporan->close();
 </div>
 
 <?php
-// 6. Panggil Footer
 require_once 'templates/footer.php';
 $conn->close();
 ?>
