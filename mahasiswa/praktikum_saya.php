@@ -3,7 +3,7 @@
 
 // 1. Panggil Header dan Konfigurasi
 $pageTitle = 'Praktikum Saya';
-require_once '../templates/header.php';
+require_once 'templates/header_mahasiswa.php';
 require_once '../config.php';
 
 // 2. Pastikan hanya mahasiswa yang bisa mengakses

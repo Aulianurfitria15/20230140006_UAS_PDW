@@ -2,7 +2,7 @@
 // mahasiswa/detail_praktikum.php
 
 // 1. Panggil Header dan Konfigurasi
-require_once '../templates/header.php';
+require_once 'templates/header_mahasiswa.php';
 require_once '../config.php';
 
 // 2. Validasi akses
