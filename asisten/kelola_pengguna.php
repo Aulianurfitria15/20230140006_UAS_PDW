@@ -105,11 +105,11 @@ $result_users = $conn->query("SELECT id, nama, email, role FROM users ORDER BY r
 
 <?php if (!empty($pesan)) { echo $pesan; } ?>
 
-<div class="bg-white p-6 rounded-lg shadow-md mb-8">
+<<div class="bg-white p-6 rounded-lg shadow-md mb-8">
     <h3 class="text-xl font-bold text-gray-900 mb-4">
         <?php echo $is_edit_mode ? 'Edit Data Pengguna' : 'Tambah Pengguna Baru'; ?>
     </h3>
-    <form action="kelola_pengguna.php" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+    <form action="kelola_pengguna.php" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" autocomplete="off">
         
         <?php if ($is_edit_mode): ?>
             <input type="hidden" name="id_update" value="<?php echo $user_to_edit['id']; ?>">
@@ -127,6 +127,7 @@ $result_users = $conn->query("SELECT id, nama, email, role FROM users ORDER BY r
             <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
             <input type="password" name="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
                    placeholder="<?php echo $is_edit_mode ? 'Kosongkan jika tidak ganti' : ''; ?>" 
+                   autocomplete="new-password"
                    <?php echo !$is_edit_mode ? 'required' : ''; ?>>
         </div>
         <div>
