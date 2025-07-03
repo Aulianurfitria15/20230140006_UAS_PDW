@@ -2,7 +2,7 @@
 // asisten/modul.php
 
 // 1. Panggil Header dan Konfigurasi
-require_once '../templates/header.php';
+require_once 'templates/header.php';
 require_once '../config.php';
 
 // 2. Pastikan hanya asisten yang bisa mengakses
@@ -162,6 +162,6 @@ $result_modul = $conn->query("SELECT * FROM modul WHERE id_praktikum = $id_prakt
 
 <?php
 // 7. Panggil Footer
-require_once '../templates/footer.php';
+require_once 'templates/footer.php';
 $conn->close();
 ?>

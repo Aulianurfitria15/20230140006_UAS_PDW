@@ -5,7 +5,7 @@
 $pageTitle = 'Kelola Mata Praktikum';
 
 // 2. Panggil Header dan Konfigurasi
-require_once '../templates/header.php';
+require_once 'templates/header.php';
 require_once '../config.php';
 
 // 3. Pastikan hanya asisten yang bisa mengakses halaman ini
@@ -151,6 +151,6 @@ $result = $conn->query("SELECT * FROM mata_praktikum ORDER BY id DESC");
 
 <?php
 // 8. Panggil Footer
-require_once '../templates/footer.php';
+require_once 'templates/footer.php';
 $conn->close();
 ?>

@@ -3,7 +3,7 @@
 
 // 1. Panggil Header dan Konfigurasi
 $pageTitle = 'Kelola Akun Pengguna';
-require_once '../templates/header.php';
+require_once 'templates/header.php';
 require_once '../config.php';
 
 // 2. Pastikan hanya asisten yang bisa mengakses
@@ -138,6 +138,6 @@ $result_users = $conn->query("SELECT id, nama, email, role FROM users ORDER BY r
 
 <?php
 // 6. Panggil Footer
-require_once '../templates/footer.php';
+require_once 'templates/footer.php';
 $conn->close();
 ?>
