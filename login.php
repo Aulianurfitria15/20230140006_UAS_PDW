@@ -13,6 +13,7 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $message = '';
+$message_type = ''; // 'error' or 'success'
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
@@ -20,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (empty($email) || empty($password)) {
         $message = "Email dan password harus diisi!";
+        $message_type = 'error';
     } else {
         $sql = "SELECT id, nama, email, password, role FROM users WHERE email = ?";
         $stmt = $conn->prepare($sql);
@@ -37,7 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['nama'] = $user['nama'];
                 $_SESSION['role'] = $user['role'];
 
-                // ====== INI BAGIAN YANG DIUBAH ======
                 // Logika untuk mengarahkan pengguna berdasarkan peran (role)
                 if ($user['role'] == 'asisten') {
                     header("Location: asisten/dashboard.php");
@@ -46,20 +47,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: mahasiswa/dashboard.php");
                     exit();
                 } else {
-                    // Fallback jika peran tidak dikenali
                     $message = "Peran pengguna tidak valid.";
+                    $message_type = 'error';
                 }
-                // ====== AKHIR DARI BAGIAN YANG DIUBAH ======
 
             } else {
                 $message = "Password yang Anda masukkan salah.";
+                $message_type = 'error';
             }
         } else {
             $message = "Akun dengan email tersebut tidak ditemukan.";
+            $message_type = 'error';
         }
         $stmt->close();
     }
 }
+
+// Cek untuk pesan registrasi berhasil
+if (isset($_GET['status']) && $_GET['status'] == 'registered') {
+    $message = 'Registrasi berhasil! Silakan login.';
+    $message_type = 'success';
+}
+
 $conn->close();
 ?>
 
@@ -67,47 +76,176 @@ $conn->close();
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistem Praktikum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        /* ... (CSS Anda tidak perlu diubah) ... */
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background-color: #fff; padding: 20px 40px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 320px; }
-        h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn { background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
-        .btn:hover { background-color: #0056b3; }
-        .message { color: red; text-align: center; margin-bottom: 15px; }
-        .message.success { color: green; }
-        .register-link { text-align: center; margin-top: 15px; }
-        .register-link a { color: #28a745; text-decoration: none; }
+        :root {
+            --primary-color: #4a69bd;
+            --primary-hover-color: #3e5a9e;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --light-bg-color: #f8f9fa;
+            --dark-text-color: #343a40;
+            --light-text-color: #6c757d;
+            --border-color: #dee2e6;
+            --white-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background-color: var(--white-color);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .login-container h2 {
+            color: var(--dark-text-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .login-container p {
+            color: var(--light-text-color);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+            display: none; /* Disembunyikan secara default */
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-group .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--light-text-color);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 12px 12px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.2);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover-color);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--light-text-color);
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover-color);
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Login</h2>
+    <div class="login-container">
+        <h2>Selamat Datang!</h2>
+        <p>Silakan masuk untuk melanjutkan.</p>
+
         <?php 
-            if (isset($_GET['status']) && $_GET['status'] == 'registered') {
-                echo '<p class="message success">Registrasi berhasil! Silakan login.</p>';
-            }
             if (!empty($message)) {
-                echo '<p class="message">' . $message . '</p>';
+                echo '<div class="message ' . htmlspecialchars($message_type) . '">' . htmlspecialchars($message) . '</div>';
             }
         ?>
+
         <form action="login.php" method="post">
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" id="email" name="email" placeholder="Email" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" name="password" placeholder="Password" required>
             </div>
             <button type="submit" class="btn">Login</button>
         </form>
-         <div class="register-link">
-            <p>Belum punya akun? <a href="register.php">Daftar di sini</a></p>
+
+        <div class="register-link">
+            Belum punya akun? <a href="register.php">Daftar di sini</a>
         </div>
     </div>
 </body>
