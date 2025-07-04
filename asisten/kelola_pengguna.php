@@ -14,6 +14,7 @@ if ($_SESSION['role'] !== 'asisten') {
 
 // Inisialisasi variabel
 $pesan = '';
+$alert_type = '';
 $is_edit_mode = false;
 $user_to_edit = ['id' => '', 'nama' => '', 'email' => '', 'role' => 'mahasiswa'];
 
@@ -22,20 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $_POST['nama'];
     $email = $_POST['email'];
     $role = $_POST['role'];
+    $password = $_POST['password'] ?? '';
 
     // PROSES UPDATE
     if (isset($_POST['id_update'])) {
         $id_update = $_POST['id_update'];
-        $password = $_POST['password'];
-
+        
         $stmt_check = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmt_check->bind_param("si", $email, $id_update);
         $stmt_check->execute();
         $stmt_check->store_result();
 
         if ($stmt_check->num_rows > 0) {
-            $pesan = "<div class='bg-red-100 text-red-700 p-3 rounded-lg mb-4'>Email sudah digunakan oleh pengguna lain.</div>";
-            // Isi kembali data yang sedang diedit jika gagal
+            $pesan = "Email sudah digunakan oleh pengguna lain.";
+            $alert_type = 'danger';
             $user_to_edit = ['id' => $id_update, 'nama' => $nama, 'email' => $email, 'role' => $role];
             $is_edit_mode = true;
         } else {
@@ -47,10 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt = $conn->prepare("UPDATE users SET nama = ?, email = ?, role = ? WHERE id = ?");
                 $stmt->bind_param("sssi", $nama, $email, $role, $id_update);
             }
+
             if ($stmt->execute()) {
-                $pesan = "<div class='bg-green-100 text-green-700 p-3 rounded-lg mb-4'>Data pengguna berhasil diperbarui.</div>";
+                $pesan = "Data pengguna berhasil diperbarui.";
+                $alert_type = 'success';
             } else {
-                $pesan = "<div class='bg-red-100 text-red-700 p-3 rounded-lg mb-4'>Gagal memperbarui data.</div>";
+                $pesan = "Gagal memperbarui data.";
+                $alert_type = 'danger';
             }
             $stmt->close();
         }
@@ -58,29 +62,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     // PROSES CREATE
     else {
-        $password = $_POST['password'];
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-        $stmt_insert = $conn->prepare("INSERT INTO users (nama, email, password, role) VALUES (?, ?, ?, ?)");
-        $stmt_insert->bind_param("ssss", $nama, $email, $hashed_password, $role);
-        if ($stmt_insert->execute()) {
-            $pesan = "<div class='bg-green-100 text-green-700 p-3 rounded-lg mb-4'>Pengguna baru berhasil ditambahkan.</div>";
+        // Cek email dulu
+        $stmt_check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt_check->bind_param("s", $email);
+        $stmt_check->execute();
+        $stmt_check->store_result();
+        if($stmt_check->num_rows > 0) {
+            $pesan = "Email sudah terdaftar. Gunakan email lain.";
+            $alert_type = 'danger';
+        } elseif (empty($password)) {
+            $pesan = "Password wajib diisi untuk pengguna baru.";
+            $alert_type = 'danger';
         } else {
-            $pesan = "<div class='bg-red-100 text-red-700 p-3 rounded-lg mb-4'>Gagal menambahkan pengguna.</div>";
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $stmt_insert = $conn->prepare("INSERT INTO users (nama, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt_insert->bind_param("ssss", $nama, $email, $hashed_password, $role);
+            if ($stmt_insert->execute()) {
+                $pesan = "Pengguna baru berhasil ditambahkan.";
+                $alert_type = 'success';
+            } else {
+                $pesan = "Gagal menambahkan pengguna.";
+                $alert_type = 'danger';
+            }
+            $stmt_insert->close();
         }
-        $stmt_insert->close();
+        $stmt_check->close();
     }
 }
+
 
 // LOGIKA DELETE (GET)
 if (isset($_GET['hapus_id'])) {
     $id_hapus = $_GET['hapus_id'];
     if ($id_hapus == $_SESSION['user_id']) {
-        $pesan = "<div class='bg-yellow-100 text-yellow-700 p-3 rounded-lg mb-4'>Anda tidak dapat menghapus akun Anda sendiri.</div>";
+        $pesan = "Anda tidak dapat menghapus akun Anda sendiri.";
+        $alert_type = 'warning';
     } else {
         $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
         $stmt->bind_param("i", $id_hapus);
         $stmt->execute();
-        $pesan = "<div class='bg-green-100 text-green-700 p-3 rounded-lg mb-4'>Pengguna berhasil dihapus.</div>";
+        $pesan = "Pengguna berhasil dihapus.";
+        $alert_type = 'success';
         $stmt->close();
     }
 }
@@ -102,87 +124,178 @@ if (isset($_GET['edit_id'])) {
 // MEMBACA SEMUA DATA PENGGUNA (READ)
 $result_users = $conn->query("SELECT id, nama, email, role FROM users ORDER BY role, nama ASC");
 ?>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    :root {
+        --primary-color: #4f46e5; --primary-hover: #4338ca;
+        --danger-color: #ef4444; --danger-hover: #dc2626;
+        --info-color: #3b82f6; --info-hover: #2563eb;
+        --success-bg: #dcfce7; --success-text: #166534;
+        --danger-bg: #fee2e2; --danger-text: #991b1b;
+        --warning-bg: #fef9c3; --warning-text: #a16207;
+        --text-primary: #1f2937; --text-secondary: #6b7280;
+        --border-color: #e5e7eb; --card-bg: #ffffff;
+        --shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+        --border-radius: 0.5rem;
+    }
+    .main-content { font-family: 'Inter', sans-serif; }
+    .card {
+        background-color: var(--card-bg); padding: 1.5rem;
+        border-radius: var(--border-radius); box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
+        margin-bottom: 1.5rem; padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .alert {
+        padding: 1rem; margin-bottom: 1.5rem;
+        border-radius: var(--border-radius); font-size: 0.875rem;
+    }
+    .alert-success { background-color: var(--success-bg); color: var(--success-text); }
+    .alert-danger { background-color: var(--danger-bg); color: var(--danger-text); }
+    .alert-warning { background-color: var(--warning-bg); color: var(--warning-text); }
+    .form-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1rem; }
+    @media(min-width: 1024px) { .form-grid { grid-template-columns: repeat(3, 1fr); } }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.col-span-full { grid-column: 1 / -1; }
+    .form-label {
+        font-size: 0.875rem; font-weight: 500;
+        color: var(--text-primary); margin-bottom: 0.5rem;
+    }
+    .form-input, .form-select {
+        width: 100%; padding: 0.625rem 0.75rem;
+        border: 1px solid var(--border-color); border-radius: 0.375rem;
+        box-shadow: var(--shadow);
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none; border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    .btn {
+        display: inline-flex; padding: 0.625rem 1.25rem; border-radius: 0.375rem;
+        font-weight: 600; font-size: 0.875rem; border: 1px solid transparent;
+        cursor: pointer; transition: background-color 0.2s; text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; }
+    .btn-primary { background-color: var(--primary-color); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-info { background-color: var(--info-color); color: white; }
+    .btn-info:hover { background-color: var(--info-hover); }
+    .btn-danger { background-color: var(--danger-color); color: white; }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+    .btn-outline { background-color: transparent; color: var(--text-secondary); border-color: var(--border-color); }
+    .btn-outline:hover { background-color: #f9fafb; }
+    .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .table-wrapper { overflow-x: auto; }
+    .table { width: 100%; border-collapse: collapse; text-align: left; }
+    .table th {
+        padding: 0.75rem 1.5rem; font-size: 0.75rem; text-transform: uppercase; 
+        font-weight: 600; color: var(--text-secondary); background-color: #f9fafb;
+    }
+    .table td {
+        padding: 1rem 1.5rem; font-size: 0.875rem;
+        color: var(--text-secondary); vertical-align: middle;
+        border-top: 1px solid var(--border-color);
+    }
+    .table td .font-semibold { font-weight: 600; color: var(--text-primary); }
+    .table .text-center { text-align: center; }
+    .badge {
+        display: inline-flex; padding: 0.25rem 0.75rem; font-size: 0.75rem;
+        font-weight: 600; line-height: 1.25; border-radius: 9999px;
+    }
+    .badge-asisten { background-color: #dbeafe; color: #1e40af; }
+    .badge-mahasiswa { background-color: #dcfce7; color: #166534; }
+</style>
 
-<?php if (!empty($pesan)) { echo $pesan; } ?>
+<div class="main-content">
 
-<<div class="bg-white p-6 rounded-lg shadow-md mb-8">
-    <h3 class="text-xl font-bold text-gray-900 mb-4">
-        <?php echo $is_edit_mode ? 'Edit Data Pengguna' : 'Tambah Pengguna Baru'; ?>
-    </h3>
-    <form action="kelola_pengguna.php" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" autocomplete="off">
-        
-        <?php if ($is_edit_mode): ?>
-            <input type="hidden" name="id_update" value="<?php echo $user_to_edit['id']; ?>">
-        <?php endif; ?>
+    <?php if (!empty($pesan)): ?>
+        <div class="alert alert-<?php echo $alert_type; ?>"><?php echo htmlspecialchars($pesan); ?></div>
+    <?php endif; ?>
 
-        <div>
-            <label for="nama" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-            <input type="text" name="nama" id="nama" value="<?php echo htmlspecialchars($user_to_edit['nama']); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required>
-        </div>
-        <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($user_to_edit['email']); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required>
-        </div>
-        <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" name="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
-                   placeholder="<?php echo $is_edit_mode ? 'Kosongkan jika tidak ganti' : ''; ?>" 
-                   autocomplete="new-password"
-                   <?php echo !$is_edit_mode ? 'required' : ''; ?>>
-        </div>
-        <div>
-            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-            <select name="role" id="role" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option value="mahasiswa" <?php echo ($user_to_edit['role'] == 'mahasiswa') ? 'selected' : ''; ?>>Mahasiswa</option>
-                <option value="asisten" <?php echo ($user_to_edit['role'] == 'asisten') ? 'selected' : ''; ?>>Asisten</option>
-            </select>
-        </div>
-        <div class="col-span-full flex items-center">
-            <button type="submit" class="inline-flex justify-center py-2 px-4 border shadow-sm text-sm font-medium rounded-md text-white <?php echo $is_edit_mode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-indigo-600 hover:bg-indigo-700'; ?>">
-                <?php echo $is_edit_mode ? 'Update Pengguna' : 'Tambah Pengguna'; ?>
-            </button>
+    <div class="card">
+        <h3 class="card-header">
+            <?php echo $is_edit_mode ? 'Edit Data Pengguna' : 'Tambah Pengguna Baru'; ?>
+        </h3>
+        <form action="kelola_pengguna.php" method="POST" class="form-grid" autocomplete="off">
+            
             <?php if ($is_edit_mode): ?>
-                <a href="kelola_pengguna.php" class="ml-3 text-sm text-gray-600 hover:text-gray-900">Batal</a>
+                <input type="hidden" name="id_update" value="<?php echo $user_to_edit['id']; ?>">
             <?php endif; ?>
-        </div>
-    </form>
-</div>
 
-<div class="bg-white p-6 rounded-lg shadow-md">
-    <h3 class="text-xl font-bold text-gray-900 mb-4">Daftar Semua Pengguna</h3>
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if ($result_users && $result_users->num_rows > 0): ?>
-                    <?php while($user = $result_users->fetch_assoc()): ?>
+            <div class="form-group">
+                <label for="nama" class="form-label">Nama Lengkap</label>
+                <input type="text" name="nama" id="nama" value="<?php echo htmlspecialchars($user_to_edit['nama']); ?>" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($user_to_edit['email']); ?>" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" name="password" id="password" class="form-input" 
+                       placeholder="<?php echo $is_edit_mode ? 'Kosongkan jika tidak ganti' : 'Wajib diisi'; ?>" 
+                       autocomplete="new-password"
+                       <?php echo !$is_edit_mode ? 'required' : ''; ?>>
+            </div>
+            <div class="form-group" style="grid-column: 1 / 2;"> <label for="role" class="form-label">Role</label>
+                <select name="role" id="role" class="form-select">
+                    <option value="mahasiswa" <?php echo ($user_to_edit['role'] == 'mahasiswa') ? 'selected' : ''; ?>>Mahasiswa</option>
+                    <option value="asisten" <?php echo ($user_to_edit['role'] == 'asisten') ? 'selected' : ''; ?>>Asisten</option>
+                </select>
+            </div>
+            <div class="form-group col-span-full" style="align-self: flex-end;">
+                <div class="btn-group">
+                    <button type="submit" class="btn <?php echo $is_edit_mode ? 'btn-info' : 'btn-primary'; ?>">
+                        <?php echo $is_edit_mode ? 'Update Pengguna' : 'Tambah Pengguna'; ?>
+                    </button>
+                    <?php if ($is_edit_mode): ?>
+                        <a href="kelola_pengguna.php" class="btn btn-outline">Batal</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3 class="card-header">Daftar Semua Pengguna</h3>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td class="px-6 py-4"><?php echo htmlspecialchars($user['nama']); ?></td>
-                        <td class="px-6 py-4"><?php echo htmlspecialchars($user['email']); ?></td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $user['role'] == 'asisten' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'; ?>">
-                                <?php echo ucfirst($user['role']); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-center text-sm font-medium">
-                            <a href="kelola_pengguna.php?edit_id=<?php echo $user['id']; ?>" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                            <a href="kelola_pengguna.php?hapus_id=<?php echo $user['id']; ?>" class="text-red-600 hover:text-red-900" onclick="return confirm('Yakin ingin menghapus pengguna ini?');">Hapus</a>
-                        </td>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
-                    <?php endwhile; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if ($result_users && $result_users->num_rows > 0): ?>
+                        <?php while($user = $result_users->fetch_assoc()): ?>
+                        <tr>
+                            <td class="font-semibold"><?php echo htmlspecialchars($user['nama']); ?></td>
+                            <td><?php echo htmlspecialchars($user['email']); ?></td>
+                            <td>
+                                <span class="badge <?php echo $user['role'] == 'asisten' ? 'badge-asisten' : 'badge-mahasiswa'; ?>">
+                                    <?php echo ucfirst($user['role']); ?>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" style="justify-content: center;">
+                                    <a href="kelola_pengguna.php?edit_id=<?php echo $user['id']; ?>" class="btn btn-info">Edit</a>
+                                    <a href="kelola_pengguna.php?hapus_id=<?php echo $user['id']; ?>" class="btn btn-danger" onclick="return confirm('Yakin ingin menghapus pengguna ini?');">Hapus</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-
 <?php
 require_once 'templates/footer.php';
 $conn->close();
